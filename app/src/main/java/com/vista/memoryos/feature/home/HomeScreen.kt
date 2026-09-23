@@ -1,22 +1,27 @@
 package com.vista.memoryos.feature.home
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vista.memoryos.core.theme.Spacing
 import com.vista.memoryos.core.ui.VistaButton
 import com.vista.memoryos.core.ui.VistaCard
 import com.vista.memoryos.core.ui.VistaTopBar
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
-            VistaTopBar(title = "VISTA")
+            VistaTopBar("VISTA")
         }
     ) { padding ->
 
@@ -28,24 +33,33 @@ fun HomeScreen() {
         ) {
 
             VistaCard {
+
                 Text(
-                    text = "Welcome to VISTA",
+                    "Welcome to VISTA",
                     style = MaterialTheme.typography.headlineSmall
                 )
 
                 Spacer(Modifier.height(Spacing.sm))
 
-                Text(
-                    text = "Your intelligent cloud memory system is now ready.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                when {
+
+                    state.isLoading -> {
+                        CircularProgressIndicator()
+                    }
+
+                    state.error != null -> {
+                        Text(state.error!!)
+                    }
+
+                    else -> {
+                        Text(state.data ?: "")
+                    }
+                }
             }
 
             VistaButton(
                 text = "Upload Memory",
-                onClick = {
-                    // Coming in Module M2
-                }
+                onClick = {}
             )
         }
     }
