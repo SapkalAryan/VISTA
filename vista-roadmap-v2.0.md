@@ -30,7 +30,7 @@ Create a stable Android project with modern Compose architecture.
 - Emulator verified
 - Git & GitHub connected
 
-### Git
+**Git**
 
 ```text
 feat(M0.1): initialize Android project with Compose foundation
@@ -56,7 +56,7 @@ com.vista.memoryos
 - Feature-first organization
 - UI never accesses data directly
 
-### Git
+**Git**
 
 ```text
 refactor(M0.2.1): establish clean architecture
@@ -84,7 +84,7 @@ Activity
 Injected Dependencies
 ```
 
-### Git
+**Git**
 
 ```text
 feat(M0.2.2): integrate Hilt dependency injection
@@ -115,7 +115,7 @@ Main Container
 - Onboarding
 - Feature placeholders
 
-### Git
+**Git**
 
 ```text
 feat(M0.2.3): implement navigation foundation
@@ -138,7 +138,7 @@ feat(M0.2.3): implement navigation foundation
 | Grid | 8dp |
 | Elevation | 4dp |
 
-### Git
+**Git**
 
 ```text
 feat(M0.2.4): establish reusable design system
@@ -165,7 +165,7 @@ UiState
 StateFlow
 ```
 
-### Git
+**Git**
 
 ```text
 feat(M0.2.5): establish MVVM architecture
@@ -213,7 +213,7 @@ Supabase Client
 Supabase Cloud
 ```
 
-### Git
+**Git**
 
 ```text
 feat(M1.1): integrate Supabase backend
@@ -256,53 +256,34 @@ Repository
 Supabase Auth
 ```
 
-### Git
+**Git**
 
 ```text
 feat(M1.2): implement registration foundation
 ```
 
-## M1.3 Registration Stabilization (Current)
+## M1.3 Registration UX Stabilization ✅
 
-### M1.3.1 Form UX ✅
+### Objective
+
+Make the registration screen behave like a native Android form.
 
 ### Completed
 
-* Single-line fields
-* Next keyboard action
-* Done submits form
-* Keyboard dismissal
-* Focus traversal
+- Single-line Name field
+- Single-line Email field
+- Password field
+- IME Next navigation
+- IME Done submission
+- Automatic focus traversal
+- Keyboard dismissal
+- Loading button lock
 
-### M1.3.2 Error Handling
-
-**Status:** Pending
-
-### Goals
-
-* Friendly messages
-* Domain error model
-* No raw exceptions
-* Loading lock
-* Duplicate prevention
-
-### New Files
+### Files
 
 ```text
-domain/model/AuthError.kt
-domain/model/AuthResult.kt
+feature/onboarding/OnboardingScreen.kt
 ```
-
-### M1.3.3 Duplicate Account Detection
-
-**Status:** Pending
-
-### Features
-
-* Existing account detection
-* Already verified handling
-* Verification pending handling
-* Sign-in suggestion
 
 ### UX Flow
 
@@ -316,7 +297,7 @@ Password
 Create Account
 ```
 
-### Git
+**Git**
 
 ```text
 feat(M1.3): improve registration UX
@@ -365,7 +346,7 @@ Verification Email
 User Inbox
 ```
 
-### Git
+**Git**
 
 ```text
 chore(M1.4): configure Gmail SMTP
@@ -383,7 +364,7 @@ chore(M1.4): configure Gmail SMTP
 | M1.6 Login System | ⏳ Pending |
 | M1.7 Session Persistence | ⏳ Pending |
 
-**Overall Progress: 45%**
+**Overall Progress:** 45%
 
 # 5. Next Implementation Plan
 
@@ -486,7 +467,7 @@ Session Exists?
  └── No  → Onboarding
 ```
 
-# 6. Current Project Structure
+# Current Project Structure
 
 ```text
 app/src/main/java/com/vista/memoryos/
@@ -515,7 +496,7 @@ app/src/main/java/com/vista/memoryos/
 └── VistaApplication.kt
 ```
 
-# 7. Pending Git Milestone
+# Pending Git Milestone
 
 The next commit will be created after M1.5 is completed.
 

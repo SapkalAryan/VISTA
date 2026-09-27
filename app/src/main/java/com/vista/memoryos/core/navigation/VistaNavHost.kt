@@ -68,11 +68,7 @@ fun VistaNavHost() {
             }
 
             composable(Screen.Onboarding.route) {
-                OnboardingScreen {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
-                    }
-                }
+                OnboardingScreen()
             }
 
             composable(Screen.Home.route) { HomeScreen() }

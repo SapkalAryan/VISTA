@@ -1,31 +1,31 @@
 package com.vista.memoryos.feature.home
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.vista.memoryos.core.common.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor() :
-    BaseViewModel<String>() {
+class HomeViewModel @Inject constructor(
+    private val supabase: SupabaseClient
+) : ViewModel() {
 
-    init {
-        loadHome()
-    }
+    private val _status = MutableStateFlow("Not Tested")
+    val status: StateFlow<String> = _status
 
-    private fun loadHome() {
-
+    fun testConnection() {
         viewModelScope.launch {
-
-            _uiState.value = _uiState.value.copy(
-                isLoading = true
-            )
-
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                data = "Your intelligent cloud memory system is now ready."
-            )
+            try {
+                supabase.postgrest["profiles"].select()
+                _status.value = "Connection Successful"
+            } catch (e: Exception) {
+                _status.value = "Failed: ${e.message}"
+            }
         }
     }
 }
