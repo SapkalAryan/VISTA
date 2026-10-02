@@ -12,11 +12,43 @@ import com.vista.memoryos.feature.profile.ProfileScreen
 import com.vista.memoryos.feature.search.SearchScreen
 import com.vista.memoryos.feature.splash.SplashScreen
 import com.vista.memoryos.feature.timeline.TimelineScreen
+import com.vista.memoryos.feature.auth.VerificationSuccessScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import io.github.jan.supabase.auth.status.SessionStatus
+import com.vista.memoryos.feature.auth.AuthViewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.vista.memoryos.feature.auth.VerificationSuccessScreen
 
 @Composable
-fun VistaNavHost() {
-
+fun VistaNavHost(
+    isAuthDeepLink: Boolean = false,
+    authViewModel: AuthViewModel = hiltViewModel()
+) {
+    val sessionStatus by authViewModel.sessionStatus.collectAsState()
     val navController = rememberNavController()
+
+    LaunchedEffect(isAuthDeepLink, sessionStatus) {
+        if (
+            isAuthDeepLink &&
+            sessionStatus is SessionStatus.Authenticated
+        ) {
+            navController.navigate(Screen.VerificationSuccess.route) {
+                popUpTo(Screen.Splash.route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -59,6 +91,7 @@ fun VistaNavHost() {
             modifier = Modifier.padding(padding)
         ) {
 
+
             composable(Screen.Splash.route) {
                 SplashScreen {
                     navController.navigate(Screen.Onboarding.route) {
@@ -69,6 +102,18 @@ fun VistaNavHost() {
 
             composable(Screen.Onboarding.route) {
                 OnboardingScreen()
+            }
+
+            composable(Screen.VerificationSuccess.route) {
+                VerificationSuccessScreen(
+                    onContinue = {
+                        navController.navigate(Screen.Onboarding.route) {
+                            popUpTo(Screen.VerificationSuccess.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
             }
 
             composable(Screen.Home.route) { HomeScreen() }

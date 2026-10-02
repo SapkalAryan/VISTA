@@ -1,6 +1,7 @@
 package com.vista.memoryos.data.repository
 
 import com.vista.memoryos.domain.model.AuthError
+import com.vista.memoryos.domain.model.AuthResult
 import com.vista.memoryos.domain.repository.AuthRepository
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
@@ -14,7 +15,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun register(
         email: String,
         password: String
-    ): Result<AuthError?> {
+    ): AuthResult<Unit> {
 
         return try {
 
@@ -23,18 +24,20 @@ class AuthRepositoryImpl @Inject constructor(
                 this.password = password
             }
 
-            Result.success(null)
+            AuthResult.Success(Unit)
 
         } catch (e: Exception) {
 
-            Result.success(mapError(e.message.orEmpty()))
+            AuthResult.Failure(
+                mapError(e.message.orEmpty())
+            )
         }
     }
 
     override suspend fun login(
         email: String,
         password: String
-    ): Result<AuthError?> {
+    ): AuthResult<Unit> {
 
         return try {
 
@@ -43,11 +46,13 @@ class AuthRepositoryImpl @Inject constructor(
                 this.password = password
             }
 
-            Result.success(null)
+            AuthResult.Success(Unit)
 
         } catch (e: Exception) {
 
-            Result.success(mapError(e.message.orEmpty()))
+            AuthResult.Failure(
+                mapError(e.message.orEmpty())
+            )
         }
     }
 
@@ -56,7 +61,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Converts Supabase exceptions into domain errors.
+     * Converts Supabase exceptions into domain-level authentication errors.
      */
     private fun mapError(message: String): AuthError {
 
@@ -65,22 +70,28 @@ class AuthRepositoryImpl @Inject constructor(
         return when {
 
             "already registered" in text ->
-                AuthError.EMAIL_EXISTS
+                AuthError.UserAlreadyExists
 
             "rate_limit" in text ->
-                AuthError.EMAIL_RATE_LIMIT
+                AuthError.TooManyRequests
 
             "invalid email" in text ->
-                AuthError.INVALID_EMAIL
+                AuthError.InvalidEmail
 
             "password" in text ->
-                AuthError.WEAK_PASSWORD
+                AuthError.WeakPassword
 
-            "network" in text ->
-                AuthError.NETWORK
+            "network" in text ||
+                    "unable to resolve host" in text ||
+                    "no address associated with hostname" in text ||
+                    "failed to connect" in text ||
+                    "connection refused" in text ||
+                    "connection reset" in text ||
+                    "timeout" in text ->
+                AuthError.NetworkError
 
             else ->
-                AuthError.UNKNOWN
+                AuthError.Unknown
         }
     }
 }

@@ -3,6 +3,7 @@ package com.vista.memoryos.feature.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vista.memoryos.domain.model.AuthError
+import com.vista.memoryos.domain.model.AuthResult
 import com.vista.memoryos.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,28 +47,38 @@ class OnboardingViewModel @Inject constructor(
 
             _loading.value = false
 
-            _message.value = when (result.getOrNull()) {
+            _message.value = when (result) {
 
-                null ->
+                is AuthResult.Success ->
                     "Verification email sent. Please check your inbox."
 
-                AuthError.EMAIL_EXISTS ->
-                    "This email is already registered. Please sign in."
+                is AuthResult.Failure ->
+                    when (result.error) {
 
-                AuthError.EMAIL_RATE_LIMIT ->
-                    "Too many verification emails were requested. Please wait a few minutes."
+                        AuthError.InvalidEmail ->
+                            "Please enter a valid email address."
 
-                AuthError.INVALID_EMAIL ->
-                    "Please enter a valid email address."
+                        AuthError.WeakPassword ->
+                            "Password is too weak."
 
-                AuthError.WEAK_PASSWORD ->
-                    "Password is too weak."
+                        AuthError.EmptyFields ->
+                            "Please fill in all required fields."
 
-                AuthError.NETWORK ->
-                    "No internet connection."
+                        AuthError.UserAlreadyExists ->
+                            "This email is already registered. Please sign in."
 
-                AuthError.UNKNOWN ->
-                    "Something went wrong. Please try again."
+                        AuthError.NetworkError ->
+                            "No internet connection."
+
+                        AuthError.TooManyRequests ->
+                            "Too many verification emails were requested. Please wait a few minutes."
+
+                        AuthError.EmailVerificationRequired ->
+                            "Please verify your email before continuing."
+
+                        AuthError.Unknown ->
+                            "Something went wrong. Please try again."
+                    }
             }
         }
     }

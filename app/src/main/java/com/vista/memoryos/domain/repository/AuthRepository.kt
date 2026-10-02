@@ -1,18 +1,18 @@
 package com.vista.memoryos.domain.repository
 
-import com.vista.memoryos.domain.model.AuthError
+import com.vista.memoryos.domain.model.AuthResult
 
 interface AuthRepository {
 
     suspend fun register(
         email: String,
         password: String
-    ): Result<AuthError?>
+    ): AuthResult<Unit>
 
     suspend fun login(
         email: String,
         password: String
-    ): Result<AuthError?>
+    ): AuthResult<Unit>
 
     suspend fun logout()
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
 fun OnboardingScreen(
@@ -23,6 +24,7 @@ fun OnboardingScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val loading by viewModel.loading.collectAsState()
     val message by viewModel.message.collectAsState()
@@ -30,11 +32,16 @@ fun OnboardingScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val emailError = email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS
+        .matcher(email)
+        .matches()
+
+    val passwordError = password.isNotEmpty() && password.length < 6
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -51,9 +58,25 @@ fun OnboardingScreen(
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
+                onValueChange = {
+                    email = it
+                },
+                label = {
+                    Text("Email")
+                },
                 singleLine = true,
+                isError = emailError,
+                supportingText = {
+                    when {
+                        email.isBlank() -> {
+                            Text("Enter your email address.")
+                        }
+
+                        emailError -> {
+                            Text("Please enter a valid email address.")
+                        }
+                    }
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -70,10 +93,35 @@ fun OnboardingScreen(
 
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
+                onValueChange = {
+                    password = it
+                },
+                label = {
+                    Text("Password")
+                },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                isError = passwordError,
+                supportingText = {
+                    if (passwordError) {
+                        Text("Password must contain at least 6 characters.")
+                    } else {
+                        Text("Minimum 6 characters.")
+                    }
+                },
+                visualTransformation = if (passwordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                trailingIcon = {
+                    TextButton(
+                        onClick = { passwordVisible = !passwordVisible }
+                    ) {
+                        Text(
+                            text = if (passwordVisible) "Hide" else "Show"
+                        )
+                    }
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
@@ -82,7 +130,14 @@ fun OnboardingScreen(
                     onDone = {
                         keyboardController?.hide()
                         focusManager.clearFocus()
-                        viewModel.register(email, password)
+
+                        if (
+                            email.isNotBlank() &&
+                            !emailError &&
+                            password.length >= 6
+                        ) {
+                            viewModel.register(email, password)
+                        }
                     }
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -98,6 +153,7 @@ fun OnboardingScreen(
                 },
                 enabled = !loading &&
                         email.isNotBlank() &&
+                        !emailError &&
                         password.length >= 6,
                 modifier = Modifier.fillMaxWidth()
             ) {
