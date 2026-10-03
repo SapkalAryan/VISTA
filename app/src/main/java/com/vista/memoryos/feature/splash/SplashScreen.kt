@@ -1,24 +1,52 @@
-
 package com.vista.memoryos.feature.splash
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SplashScreen(onContinue: () -> Unit) {
+fun SplashScreen(
+    onLogin: () -> Unit,
+    onRegister: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("VISTA", style = MaterialTheme.typography.displaySmall)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "VISTA",
+                style = MaterialTheme.typography.displaySmall
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                onClick = onLogin
+            ) {
+                Text("Sign In")
+            }
+
             Spacer(Modifier.height(12.dp))
-            Button(onClick = onContinue) {
-                Text("Start")
+
+            OutlinedButton(
+                onClick = onRegister
+            ) {
+                Text("Create Account")
             }
         }
     }

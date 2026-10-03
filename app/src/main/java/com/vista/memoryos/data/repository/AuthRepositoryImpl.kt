@@ -18,7 +18,6 @@ class AuthRepositoryImpl @Inject constructor(
     ): AuthResult<Unit> {
 
         return try {
-
             supabase.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
@@ -29,7 +28,7 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
 
             AuthResult.Failure(
-                mapError(e.message.orEmpty())
+                mapRegistrationError(e.message.orEmpty())
             )
         }
     }
@@ -40,7 +39,6 @@ class AuthRepositoryImpl @Inject constructor(
     ): AuthResult<Unit> {
 
         return try {
-
             supabase.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
@@ -51,7 +49,7 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
 
             AuthResult.Failure(
-                mapError(e.message.orEmpty())
+                mapLoginError(e.message.orEmpty())
             )
         }
     }
@@ -63,12 +61,11 @@ class AuthRepositoryImpl @Inject constructor(
     /**
      * Converts Supabase exceptions into domain-level authentication errors.
      */
-    private fun mapError(message: String): AuthError {
+    private fun mapRegistrationError(message: String): AuthError {
 
         val text = message.lowercase()
 
         return when {
-
             "already registered" in text ->
                 AuthError.UserAlreadyExists
 
@@ -80,6 +77,36 @@ class AuthRepositoryImpl @Inject constructor(
 
             "password" in text ->
                 AuthError.WeakPassword
+
+            "network" in text ||
+                    "unable to resolve host" in text ||
+                    "no address associated with hostname" in text ||
+                    "failed to connect" in text ||
+                    "connection refused" in text ||
+                    "connection reset" in text ||
+                    "timeout" in text ->
+                AuthError.NetworkError
+
+            else ->
+                AuthError.Unknown
+        }
+    }
+
+    private fun mapLoginError(message: String): AuthError {
+
+        val text = message.lowercase()
+
+        return when {
+            "email not confirmed" in text ||
+                    "email_not_confirmed" in text ->
+                AuthError.EmailNotVerified
+
+            "invalid login credentials" in text ||
+                    "invalid credentials" in text ->
+                AuthError.InvalidCredentials
+
+            "rate_limit" in text ->
+                AuthError.TooManyRequests
 
             "network" in text ||
                     "unable to resolve host" in text ||

@@ -1,4 +1,4 @@
-package com.vista.memoryos.feature.onboarding
+package com.vista.memoryos.feature.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OnboardingViewModel @Inject constructor(
+class LoginViewModel @Inject constructor(
     private val repository: AuthRepository
 ) : ViewModel() {
 
@@ -22,39 +22,39 @@ class OnboardingViewModel @Inject constructor(
     private val _message = MutableStateFlow("")
     val message: StateFlow<String> = _message
 
-    fun register(
-        email: String,
-        password: String
-    ) {
+    private val _loginSuccess = MutableStateFlow(false)
+    val loginSuccess: StateFlow<Boolean> = _loginSuccess
 
+    fun login(email: String, password: String) {
         if (_loading.value) return
+
+        _loginSuccess.value = false
 
         if (email.isBlank()) {
             _message.value = "Please enter your email."
             return
         }
 
-        if (password.length < 6) {
-            _message.value = "Password must contain at least 6 characters."
+        if (password.isBlank()) {
+            _message.value = "Please enter your password."
             return
         }
 
         viewModelScope.launch {
-
             _loading.value = true
 
-            val result = repository.register(email, password)
+            val result = repository.login(email, password)
 
             _loading.value = false
 
             _message.value = when (result) {
-
-                is AuthResult.Success ->
-                    "Verification email sent. Please check your inbox."
+                is AuthResult.Success -> {
+                    _loginSuccess.value = true
+                    "Login successful."
+                }
 
                 is AuthResult.Failure ->
                     when (result.error) {
-
                         AuthError.InvalidEmail ->
                             "Please enter a valid email address."
 
@@ -62,28 +62,28 @@ class OnboardingViewModel @Inject constructor(
                             "Password is too weak."
 
                         AuthError.EmptyFields ->
-                            "Please fill in all required fields."
+                            "Please enter your email and password."
 
                         AuthError.UserAlreadyExists ->
-                            "This email is already registered. Please sign in."
-
-                        AuthError.NetworkError ->
-                            "No internet connection."
-
-                        AuthError.TooManyRequests ->
-                            "Too many verification emails were requested. Please wait a few minutes."
-
-                        AuthError.EmailVerificationRequired ->
-                            "Please verify your email before continuing."
-
-                        AuthError.Unknown ->
-                            "Something went wrong. Please try again."
+                            "This email is already registered."
 
                         AuthError.InvalidCredentials ->
                             "Invalid email or password."
 
                         AuthError.EmailNotVerified ->
                             "Please verify your email before logging in."
+
+                        AuthError.NetworkError ->
+                            "No internet connection."
+
+                        AuthError.TooManyRequests ->
+                            "Too many login attempts. Please try again later."
+
+                        AuthError.EmailVerificationRequired ->
+                            "Please verify your email before logging in."
+
+                        AuthError.Unknown ->
+                            "Something went wrong. Please try again."
                     }
             }
         }

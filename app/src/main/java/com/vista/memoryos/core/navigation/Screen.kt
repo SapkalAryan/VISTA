@@ -3,6 +3,7 @@ package com.vista.memoryos.core.navigation
 sealed class Screen(val route: String) {
     data object Splash : Screen("splash")
     data object Onboarding : Screen("onboarding")
+    data object Login : Screen("login")
     data object VerificationSuccess : Screen("verification_success")
 
     data object Home : Screen("home")

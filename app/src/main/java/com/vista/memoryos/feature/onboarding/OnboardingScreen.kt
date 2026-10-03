@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
 fun OnboardingScreen(
+    onLoginClick: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
 
@@ -171,6 +172,14 @@ fun OnboardingScreen(
 
             if (message.isNotEmpty()) {
                 Text(message)
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            TextButton(
+                onClick = onLoginClick
+            ) {
+                Text("Already have an account? Sign In")
             }
         }
     }

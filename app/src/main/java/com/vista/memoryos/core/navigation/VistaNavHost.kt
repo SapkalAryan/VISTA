@@ -19,14 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import io.github.jan.supabase.auth.status.SessionStatus
 import com.vista.memoryos.feature.auth.AuthViewModel
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.vista.memoryos.feature.auth.VerificationSuccessScreen
+import com.vista.memoryos.feature.auth.LoginScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun VistaNavHost(
@@ -35,12 +34,16 @@ fun VistaNavHost(
 ) {
     val sessionStatus by authViewModel.sessionStatus.collectAsState()
     val navController = rememberNavController()
+    var authDeepLinkHandled by remember { mutableStateOf(false) }
 
-    LaunchedEffect(isAuthDeepLink, sessionStatus) {
+    LaunchedEffect(isAuthDeepLink, sessionStatus, authDeepLinkHandled) {
         if (
             isAuthDeepLink &&
+            !authDeepLinkHandled &&
             sessionStatus is SessionStatus.Authenticated
         ) {
+            authDeepLinkHandled = true
+
             navController.navigate(Screen.VerificationSuccess.route) {
                 popUpTo(Screen.Splash.route) {
                     inclusive = true
@@ -93,21 +96,52 @@ fun VistaNavHost(
 
 
             composable(Screen.Splash.route) {
-                SplashScreen {
-                    navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
+                SplashScreen(
+                    onLogin = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Splash.route) {
+                                inclusive = true
+                            }
+                        }
+                    },
+                    onRegister = {
+                        navController.navigate(Screen.Onboarding.route) {
+                            popUpTo(Screen.Splash.route) {
+                                inclusive = true
+                            }
+                        }
                     }
-                }
+                )
             }
 
             composable(Screen.Onboarding.route) {
-                OnboardingScreen()
+                OnboardingScreen(
+                    onLoginClick = {
+                        navController.navigate(Screen.Login.route)
+                    }
+                )
+            }
+
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Login.route) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
+                    onRegisterClick = {
+                        navController.navigate(Screen.Onboarding.route)
+                    }
+                )
             }
 
             composable(Screen.VerificationSuccess.route) {
                 VerificationSuccessScreen(
                     onContinue = {
-                        navController.navigate(Screen.Onboarding.route) {
+                        navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.VerificationSuccess.route) {
                                 inclusive = true
                             }
