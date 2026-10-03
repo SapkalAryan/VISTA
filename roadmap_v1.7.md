@@ -1,18 +1,22 @@
 # VISTA — `roadmap.md` (Version 2.1)
 
+# VISTA — `roadmap.md` (Version 2.1)
+
 **Project:** VISTA (Virtual Intelligent Storage & Tracking)  
-**Current Phase:** Module 1 — Authentication & User Management (M1.6 Login)  
-**Status:** Module 0 Completed • Module 1 In Progress
+**Current Phase:** Module 1 — Authentication & User Management  
+**Status:** Module 0 Completed • Module 1 Completed • Module 2 Planned
 
 # 1. Project Progress
 
-| Module | Name | Status |
-| --- | --- | --- |
-| Module 0 | Foundation & Infrastructure | ✅ Complete |
-| Module 1 | Authentication & User Management | 🟡 65% Complete |
-| Module 2 | Memory Capture System | ⏳ Planned |
-| Module 3 | AI Search & Retrieval | ⏳ Planned |
-| Module 4 | Timeline Engine | ⏳ Planned |
+| Module   | Name                             | Status     |
+|----------|----------------------------------|------------|
+| Module 0 | Foundation & Infrastructure      | ✅ Complete |
+| Module 1 | Authentication & User Management | ✅ Complete |
+| Module 2 | Memory Capture System            | ⏳ Planned  |
+| Module 3 | AI Search & Retrieval            | ⏳ Planned  |
+| Module 4 | Timeline Engine                  | ⏳ Planned  |
+
+**Overall Progress:** Module 0 and Module 1 completed. Module 2 is the next development phase.
 
 # 2. Module 0 (Completed)
 
@@ -132,11 +136,11 @@ feat(M0.2.3): implement navigation foundation
 
 ### Design Tokens
 
-| Property | Value |
-| --- | --- |
-| Radius | 16dp |
-| Grid | 8dp |
-| Elevation | 4dp |
+| Property  | Value |
+|-----------|-------|
+| Radius    | 16dp  |
+| Grid      | 8dp   |
+| Elevation | 4dp   |
 
 ### Git
 
@@ -179,17 +183,65 @@ Build a complete end-to-end authentication system including registration, email 
 
 # Current Module 1 Progress
 
-| Submodule | Status |
-| --- | --- |
-| M1.1 Supabase Integration | ✅ Complete |
-| M1.2 Registration Foundation | ✅ Complete |
+| Submodule                       | Status     |
+|---------------------------------|------------|
+| M1.1 Supabase Integration       | ✅ Complete |
+| M1.2 Registration Foundation    | ✅ Complete |
 | M1.3 Registration Stabilization | ✅ Complete |
-| M1.4 Gmail SMTP | ✅ Complete |
-| M1.5 Deep Link Verification | ✅ Complete |
-| M1.6 Login System | ⏳ Next |
-| M1.7 Session Persistence | ⏳ Pending |
+| M1.4 Gmail SMTP                 | ✅ Complete |
+| M1.5 Deep Link Verification     | ✅ Complete |
+| M1.6 Login System               | ✅ Complete |
+| M1.7 Session Management         | ✅ Complete |
 
-**Overall Progress: 65%**
+**Module 1 Status: 100% Complete**
+
+### Module 1 Final Flow
+
+```text
+App Launch
+      ↓
+Supabase Session Check
+      ↓
+Existing Session?
+ ├── Yes → Home
+ └── No  → Authentication Entry
+                ↓
+        Login / Create Account
+                ↓
+          Supabase Auth
+                ↓
+        Email Verification
+                ↓
+          Verified Login
+                ↓
+              Home
+```
+
+### Session Management Flow
+
+```text
+Authenticated User
+        ↓
+Application Restart
+        ↓
+Session Restored
+        ↓
+Home
+```
+
+### Logout Flow
+
+```text
+Home
+ ↓
+Profile
+ ↓
+Logout
+ ↓
+Supabase Session Cleared
+ ↓
+Authentication Entry
+```
 
 ## M1.1 Supabase Backend Integration ✅
 
@@ -387,14 +439,14 @@ Replace Supabase default email sender with Gmail SMTP for reliable development t
 
 ### Current Configuration
 
-| Field | Value |
-| --- | --- |
-| Provider | Gmail SMTP |
-| Host | smtp.gmail.com |
-| Port | 587 |
-| Authentication | Gmail App Password |
-| Sender | Dedicated VISTA Gmail |
-| Status | Working |
+| Field          | Value                 |
+|----------------|-----------------------|
+| Provider       | Gmail SMTP            |
+| Host           | smtp.gmail.com        |
+| Port           | 587                   |
+| Authentication | Gmail App Password    |
+| Sender         | Dedicated VISTA Gmail |
+| Status         | Working               |
 
 ### Email Flow
 
@@ -528,106 +580,326 @@ Verified:
 feat(M1.5): implement email verification deep link flow
 ```
 
-# Next Implementation Plan
-
-## M1.6 Login System
+## M1.6 Login System ✅
 
 ### Objective
 
-Allow verified users to securely sign in after completing email verification.
+Allow verified users to securely sign in using Supabase Authentication.
 
-### Planned Features
+### Completed
 
 - Email & Password login
-- Friendly error handling
-- Forgot Password
-- Loading state
-- Form validation
+- Email validation
+- Password validation
 - Password visibility toggle
-- Navigation to Home
+- Loading state
+- User-friendly login error handling
+- Invalid credentials handling
+- Unverified email handling
+- Network error handling
+- Navigation to Home after successful login
 - Navigation from Verification Success to Login
+- Create Account navigation from Login
 
-### Planned Files
+### Login Error Handling
+
+The application distinguishes between:
+
+- Invalid credentials
+- Unverified email
+- Invalid email
+- Empty fields
+- Network errors
+- Too many requests
+- Unknown authentication errors
+
+### Files
 
 ```text
-feature/auth/
-
-LoginScreen.kt
-LoginViewModel.kt
+app/src/main/java/com/vista/memoryos/feature/auth/LoginScreen.kt
+app/src/main/java/com/vista/memoryos/feature/auth/LoginViewModel.kt
+app/src/main/java/com/vista/memoryos/domain/model/AuthError.kt
+app/src/main/java/com/vista/memoryos/data/repository/AuthRepositoryImpl.kt
 ```
 
-### Expected Flow
+### Login Flow
 
 ```text
-App Launch
+Login
+  ↓
+Email + Password Validation
+  ↓
+LoginViewModel
+  ↓
+AuthRepository
+  ↓
+Supabase Auth
+  ↓
+Authenticated Session
+  ↓
+Home
+```
+
+### Verification Flow
+
+```text
+Unverified Account
+      ↓
+Login Attempt
+      ↓
+Email Verification Required
+      ↓
+User Verifies Email
       ↓
 Login
-      ↓
-Email + Password
-      ↓
-Supabase Auth
-      ↓
-Authenticated
       ↓
 Home
 ```
 
-### Post-Verification Flow
+### Git
 
 ```text
-Verification Success
-        ↓
-Continue
-        ↓
-Login
+feat(M1.6): implement login system
 ```
 
-## M1.7 Session Persistence
+## M1.7 Session Management ✅
 
 ### Objective
 
-Keep users authenticated after restarting the application.
+Maintain the authenticated Supabase session across application restarts and provide secure logout.
 
-### Planned Features
+### Implementation
 
-- Auto Login
-- Secure Logout
-- Session Restore
-- Splash Authentication Check
-- Authenticated user routing
-- Unauthenticated user routing
+Session management is handled using the Supabase Authentication session state.
 
-### Planned Files
+The application observes:
 
 ```text
-core/session/
-
-SessionManager.kt
-AuthState.kt
+Supabase Auth
+      ↓
+sessionStatus
+      ↓
+AuthViewModel
+      ↓
+VistaNavHost
+      ↓
+Authenticated Routing
 ```
 
-### Flow
+No separate `SessionManager.kt` or `AuthState.kt` was required for the current implementation.
+
+### Completed
+
+- Supabase session persistence
+- Session restoration on application launch
+- Authenticated user detection
+- Automatic navigation to Home when a valid session exists
+- Unauthenticated routing
+- Secure logout through Supabase Auth
+- Session clearing after logout
+- Navigation back to authentication entry after logout
+- Protection against incorrectly showing Verification Success during normal authenticated launches
+- Physical-device verification of session persistence and logout
+
+### Files
 
 ```text
-App Launch
-     ↓
-Session Exists?
- ├── Yes → Home
- └── No  → Login / Onboarding
+app/src/main/java/com/vista/memoryos/feature/auth/AuthViewModel.kt
+app/src/main/java/com/vista/memoryos/core/navigation/VistaNavHost.kt
+app/src/main/java/com/vista/memoryos/feature/profile/ProfileScreen.kt
+app/src/main/java/com/vista/memoryos/data/remote/SupabaseClient.kt
 ```
 
-# 4. Current Project Structure
+### Session Restore Flow
+
+```text
+Application Launch
+        ↓
+Supabase Auth
+        ↓
+Session Status
+        ↓
+Authenticated?
+   ┌────┴────┐
+  Yes        No
+   ↓          ↓
+ Home     Authentication
+```
+
+### Logout Flow
+
+```text
+Profile
+   ↓
+Logout
+   ↓
+Supabase Auth Sign Out
+   ↓
+Session Cleared
+   ↓
+Authentication Entry
+```
+
+### Verification
+
+The following scenarios were successfully tested:
+
+- Correct credentials → Home
+- Incorrect password → login error
+- Unverified email → verification error
+- Unregistered email → login error
+- Application restart with active session → Home
+- Logout → authentication entry
+- Application restart after logout → authentication entry
+
+### Git
+
+```text
+feat(M1.7): complete session management and logout
+```
+
+
+# A. Next Implementation Plan
+
+## Module 2 — Memory Capture System
+
+### Objective
+
+Build VISTA's core memory-capture pipeline so that files selected or detected on the Android device can be presented to the user for consent and then uploaded to Supabase Storage.
+
+### Module 2 Core Flow
+
+```text
+File Detected / Selected
+        ↓
+Capture Queue
+        ↓
+File Information
+        ↓
+User Consent
+   ┌────┴────┐
+  Upload    Reject
+    ↓
+Supabase Storage
+    ↓
+File Record
+    ↓
+Supabase PostgreSQL
+    ↓
+Memory Capture Complete
+```
+
+### Planned Capabilities
+
+- System file picker integration
+- File selection
+- File metadata collection
+- Capture queue
+- User consent notification
+- Upload approval / rejection
+- Supabase Storage upload
+- Supabase PostgreSQL file record
+- Upload status tracking
+- Basic file inventory
+- Retry handling for failed uploads
+- Local queue/state where required
+- Original file preservation
+
+### Important Architecture Decision
+
+VISTA will use:
+
+```text
+Supabase Storage
+        +
+Supabase PostgreSQL
+        +
+Android Local Storage / Room
+```
+
+Cloud storage is the primary long-term storage location for captured files.
+
+The application must ask the user for consent before uploading a newly detected file.
+
+### Planned Module 2 Structure
+
+```text
+feature/
+├── capture/
+├── files/
+└── upload/
+
+data/
+├── remote/
+│   ├── Supabase Storage
+│   └── Supabase PostgreSQL
+└── room/
+
+services/
+├── CaptureQueueService
+├── MediaMonitorService
+├── NotificationService
+└── CompressionService
+```
+
+### Module 2 Expected Flow
+
+```text
+Android Device
+      ↓
+File Detection / Selection
+      ↓
+VISTA Capture System
+      ↓
+User Notification
+      ↓
+"Upload this file?"
+   ┌────┴────┐
+  Yes        No
+   ↓          ↓
+Upload      Ignore
+   ↓
+Supabase Storage
+   ↓
+PostgreSQL Metadata
+   ↓
+File Inventory
+```
+
+### Module 2 Completion Target
+
+At the end of Module 2, VISTA should be able to:
+
+1. Receive a file through supported Android capture/selection mechanisms.
+2. Display the detected file information.
+3. Ask the user whether the file should be uploaded.
+4. Upload approved files to Supabase Storage.
+5. Store the associated file record in Supabase PostgreSQL.
+6. Track upload state and failures.
+7. Display the captured file in the VISTA inventory.
+
+### Next Milestone
+
+```text
+M2.1 — File Selection & Capture Foundation
+```
+
+
+# B. Current Project Structure
 
 ```text
 app/src/main/java/com/vista/memoryos/
 
 ├── core
 │   └── navigation
+│       ├── Screen.kt
+│       └── VistaNavHost.kt
 │
 ├── data
 │   ├── remote
 │   │   └── SupabaseClient.kt
 │   └── repository
+│       └── AuthRepositoryImpl.kt
 │
 ├── di
 │
@@ -641,6 +913,8 @@ app/src/main/java/com/vista/memoryos/
 ├── feature
 │   ├── auth
 │   │   ├── AuthViewModel.kt
+│   │   ├── LoginScreen.kt
+│   │   ├── LoginViewModel.kt
 │   │   └── VerificationSuccessScreen.kt
 │   │
 │   ├── onboarding
@@ -650,17 +924,21 @@ app/src/main/java/com/vista/memoryos/
 │   ├── home
 │   ├── search
 │   ├── timeline
-│   └── profile
+│   ├── profile
+│   │   └── ProfileScreen.kt
+│   └── splash
+│       └── SplashScreen.kt
 │
 ├── MainActivity.kt
 └── VistaApplication.kt
 ```
 
-# 7. Latest Git Milestone
 
-### M1.5 Completed
+# C. Latest Git Milestone
 
-M1.5 email verification deep-link flow has been implemented and tested on a physical Android device.
+### Module 1 Completed
+
+Module 1 — Authentication & User Management is now complete.
 
 ### Branch
 
@@ -668,20 +946,7 @@ M1.5 email verification deep-link flow has been implemented and tested on a phys
 feature/module-1-auth
 ```
 
-### Previous Commit
-
-```text
-8a77ed7
-chore(M1.4): configure Gmail SMTP
-```
-
-### M1.5 Commit
-
-```text
-feat(M1.5): implement email verification deep link flow
-```
-
-### Current Git Flow
+### Module 1 Git Flow
 
 ```text
 M0
@@ -694,17 +959,25 @@ M1.3 Registration Stabilization
  ↓
 M1.4 Gmail SMTP
  ↓
-M1.5 Deep Link Verification ✅
+M1.5 Deep Link Verification
  ↓
 M1.6 Login System
  ↓
-M1.7 Session Persistence
+M1.7 Session Management + Logout
+ ↓
+Module 1 Complete ✅
+```
+
+### Final Module 1 Commit
+
+```text
+feat(M1.7): complete session management and logout
 ```
 
 ### Next Development Milestone
 
 ```text
-M1.6 — Login System
+M2.1 — File Selection & Capture Foundation
 ```
 
 This roadmap matches the actual completed work from Module 0 and both Module 1 conversations, without including unimplemented or extra sections.
