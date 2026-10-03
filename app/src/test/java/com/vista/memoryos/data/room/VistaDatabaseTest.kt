@@ -1,6 +1,7 @@
 package com.vista.memoryos.data.room
 
 import com.vista.memoryos.data.room.entity.FileEntity
+import com.vista.memoryos.domain.model.FileCategory
 import com.vista.memoryos.domain.model.FileProcessingStatus
 import com.vista.memoryos.domain.model.FileUploadStatus
 import org.junit.Assert.assertEquals
@@ -16,6 +17,7 @@ class VistaDatabaseTest {
             sourceUri = "content://test/file",
             displayName = "test.pdf",
             mimeType = "application/pdf",
+            category = FileCategory.DOCUMENT,
             sizeBytes = 1024L,
             contentHash = null,
             cloudPath = null,
@@ -28,6 +30,7 @@ class VistaDatabaseTest {
         assertEquals("test-file-id", file.fileId)
         assertEquals("test-user-id", file.userId)
         assertEquals("test.pdf", file.displayName)
+        assertEquals(FileCategory.DOCUMENT, file.category)
         assertEquals(FileUploadStatus.PENDING, file.uploadStatus)
         assertEquals(FileProcessingStatus.PENDING, file.processingStatus)
     }

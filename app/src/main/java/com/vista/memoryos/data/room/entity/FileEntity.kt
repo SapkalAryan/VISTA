@@ -2,10 +2,14 @@ package com.vista.memoryos.data.room.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.vista.memoryos.data.room.converter.FileStatusConverters
+import com.vista.memoryos.domain.model.FileCategory
 import com.vista.memoryos.domain.model.FileProcessingStatus
 import com.vista.memoryos.domain.model.FileUploadStatus
 
 @Entity(tableName = "files")
+@TypeConverters(FileStatusConverters::class)
 data class FileEntity(
 
     @PrimaryKey
@@ -18,6 +22,8 @@ data class FileEntity(
     val displayName: String,
 
     val mimeType: String,
+
+    val category: FileCategory,
 
     val sizeBytes: Long,
 

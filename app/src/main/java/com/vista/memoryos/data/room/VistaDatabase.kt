@@ -11,7 +11,7 @@ import com.vista.memoryos.data.room.entity.FileEntity
     entities = [
         FileEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(FileStatusConverters::class)

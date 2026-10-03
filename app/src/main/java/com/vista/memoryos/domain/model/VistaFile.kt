@@ -6,6 +6,7 @@ data class VistaFile(
     val sourceUri: String?,
     val displayName: String,
     val mimeType: String,
+    val category: FileCategory,
     val sizeBytes: Long,
     val contentHash: String?,
     val cloudPath: String?,

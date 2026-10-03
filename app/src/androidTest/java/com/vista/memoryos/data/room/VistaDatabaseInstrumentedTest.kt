@@ -15,6 +15,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import com.vista.memoryos.domain.model.FileCategory
 
 @RunWith(AndroidJUnit4::class)
 class VistaDatabaseInstrumentedTest {
@@ -50,6 +51,7 @@ class VistaDatabaseInstrumentedTest {
             uploadStatus = FileUploadStatus.PENDING,
             processingStatus = FileProcessingStatus.PENDING,
             createdAt = 1000L,
+            category = FileCategory.DOCUMENT,
             updatedAt = 1000L
         )
 
@@ -77,6 +79,7 @@ class VistaDatabaseInstrumentedTest {
             uploadStatus = FileUploadStatus.PENDING,
             processingStatus = FileProcessingStatus.PENDING,
             createdAt = 1000L,
+            category = FileCategory.DOCUMENT,
             updatedAt = 1000L
         )
 
@@ -104,6 +107,7 @@ class VistaDatabaseInstrumentedTest {
             uploadStatus = FileUploadStatus.PENDING,
             processingStatus = FileProcessingStatus.PENDING,
             createdAt = 1000L,
+            category = FileCategory.DOCUMENT,
             updatedAt = 1000L
         )
 
@@ -138,6 +142,7 @@ class VistaDatabaseInstrumentedTest {
             uploadStatus = FileUploadStatus.UPLOADED,
             processingStatus = FileProcessingStatus.PENDING,
             createdAt = 1000L,
+            category = FileCategory.DOCUMENT,
             updatedAt = 1000L
         )
 
@@ -175,6 +180,7 @@ class VistaDatabaseInstrumentedTest {
             uploadStatus = FileUploadStatus.PENDING,
             processingStatus = FileProcessingStatus.PENDING,
             createdAt = 1000L,
+            category = FileCategory.DOCUMENT,
             updatedAt = 1000L
         )
 

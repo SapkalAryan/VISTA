@@ -1,6 +1,7 @@
 package com.vista.memoryos.data.room.converter
 
 import androidx.room.TypeConverter
+import com.vista.memoryos.domain.model.FileCategory
 import com.vista.memoryos.domain.model.FileProcessingStatus
 import com.vista.memoryos.domain.model.FileUploadStatus
 
@@ -24,5 +25,15 @@ class FileStatusConverters {
     @TypeConverter
     fun toProcessingStatus(value: String): FileProcessingStatus {
         return FileProcessingStatus.valueOf(value)
+    }
+
+    @TypeConverter
+    fun fromFileCategory(category: FileCategory): String {
+        return category.name
+    }
+
+    @TypeConverter
+    fun toFileCategory(value: String): FileCategory {
+        return FileCategory.valueOf(value)
     }
 }

@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.vista.memoryos.data.room.entity.FileEntity
+import com.vista.memoryos.domain.model.FileCategory
 import com.vista.memoryos.domain.model.FileProcessingStatus
 import com.vista.memoryos.domain.model.FileUploadStatus
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,35 @@ interface FileDao {
 
     @Query("SELECT * FROM files WHERE fileId = :fileId LIMIT 1")
     suspend fun getFileById(fileId: String): FileEntity?
+
+    @Query(
+        "SELECT * FROM files WHERE category = :category ORDER BY createdAt DESC"
+    )
+    fun observeFilesByCategory(
+        category: FileCategory
+    ): Flow<List<FileEntity>>
+
+    @Query(
+        """
+        SELECT * FROM files
+        WHERE uploadStatus = :uploadStatus
+        ORDER BY createdAt DESC
+        """
+    )
+    fun observeFilesByUploadStatus(
+        uploadStatus: FileUploadStatus
+    ): Flow<List<FileEntity>>
+
+    @Query(
+        """
+        SELECT * FROM files
+        WHERE processingStatus = :processingStatus
+        ORDER BY createdAt DESC
+        """
+    )
+    fun observeFilesByProcessingStatus(
+        processingStatus: FileProcessingStatus
+    ): Flow<List<FileEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFile(file: FileEntity)
