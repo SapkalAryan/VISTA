@@ -26,6 +26,10 @@ import com.vista.memoryos.feature.auth.LoginScreen
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.vista.memoryos.data.remote.SupabaseClientProvider
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import io.github.jan.supabase.auth.auth
 
 @Composable
 fun VistaNavHost(
@@ -34,6 +38,7 @@ fun VistaNavHost(
 ) {
     val sessionStatus by authViewModel.sessionStatus.collectAsState()
     val navController = rememberNavController()
+    val scope = rememberCoroutineScope()
     var authDeepLinkHandled by remember { mutableStateOf(false) }
 
     LaunchedEffect(isAuthDeepLink, sessionStatus, authDeepLinkHandled) {
@@ -45,6 +50,20 @@ fun VistaNavHost(
             authDeepLinkHandled = true
 
             navController.navigate(Screen.VerificationSuccess.route) {
+                popUpTo(Screen.Splash.route) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
+    LaunchedEffect(sessionStatus, isAuthDeepLink) {
+        if (
+            !isAuthDeepLink &&
+            sessionStatus is SessionStatus.Authenticated
+        ) {
+            navController.navigate(Screen.Home.route) {
                 popUpTo(Screen.Splash.route) {
                     inclusive = true
                 }
@@ -153,7 +172,22 @@ fun VistaNavHost(
             composable(Screen.Home.route) { HomeScreen() }
             composable(Screen.Search.route) { SearchScreen() }
             composable(Screen.Timeline.route) { TimelineScreen() }
-            composable(Screen.Profile.route) { ProfileScreen() }
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    onLogout = {
+                        scope.launch {
+                            SupabaseClientProvider.client.auth.signOut()
+
+                            navController.navigate(Screen.Splash.route) {
+                                popUpTo(0) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }
