@@ -1,10 +1,8 @@
-# VISTA — `roadmap.md` (Version 2.1)
-
-# VISTA — `roadmap.md` (Version 2.1)
+# VISTA — `roadmap.md` (Version 2.2)
 
 **Project:** VISTA (Virtual Intelligent Storage & Tracking)  
-**Current Phase:** Module 1 — Authentication & User Management  
-**Status:** Module 0 Completed • Module 1 Completed • Module 2 Planned
+**Current Phase:** Module 2 — Storage & Inventory  
+**Status:** Module 0 Completed • Module 1 Completed • Module 2 In Progress
 
 # 1. Project Progress
 
@@ -12,11 +10,11 @@
 |----------|----------------------------------|------------|
 | Module 0 | Foundation & Infrastructure      | ✅ Complete |
 | Module 1 | Authentication & User Management | ✅ Complete |
-| Module 2 | Memory Capture System            | ⏳ Planned  |
-| Module 3 | AI Search & Retrieval            | ⏳ Planned  |
-| Module 4 | Timeline Engine                  | ⏳ Planned  |
+| Module 2 | Storage & Inventory             | 🔄 In Progress |
+| Module 3 | AI Search & Retrieval            | ⏳ Planned     |
+| Module 4 | Timeline Engine                  | ⏳ Planned     |
 
-**Overall Progress:** Module 0 and Module 1 completed. Module 2 is the next development phase.
+**Overall Progress:** Module 0 and Module 1 completed. Module 2 is currently in progress with M2.1 and M2.2 completed.
 
 # 2. Module 0 (Completed)
 
@@ -328,6 +326,9 @@ Supabase Auth
 feat(M1.2): implement registration foundation
 ```
 
+Replace the **entire M1.3 section** with this:
+
+```markdown
 ## M1.3 Registration Stabilization ✅
 
 ### M1.3.1 Form UX ✅
@@ -413,6 +414,8 @@ Create Account
 ```text
 Included in Module 1 authentication implementation
 ```
+
+**Paste it exactly where your current `## M1.3 Registration Stabilization (Current)` section is.** Do not keep any part of the old M1.3 section.
 
 ## M1.4 Gmail SMTP Infrastructure ✅
 
@@ -754,133 +757,486 @@ feat(M1.7): complete session management and logout
 ```
 
 
-# A. Next Implementation Plan
+# 4. Module 2 — Storage & Inventory
 
-## Module 2 — Memory Capture System
+## Objective
 
-### Objective
+Build VISTA's durable file storage and inventory foundation before implementing automatic capture, AI understanding, memory generation, and smart retrieval.
 
-Build VISTA's core memory-capture pipeline so that files selected or detected on the Android device can be presented to the user for consent and then uploaded to Supabase Storage.
+The Module 2 architecture separates:
+
+```text
+Original / Managed File
+        ↓
+Supabase Storage
+
+Structured File Information
+        ↓
+Supabase PostgreSQL
+
+Local Lightweight State / Cache
+        ↓
+Room Database
+```
+
+The VISTA File ID is the permanent logical identity of a managed item and is used to connect its local, cloud metadata, and cloud-storage representations.
 
 ### Module 2 Core Flow
 
 ```text
-File Detected / Selected
-        ↓
-Capture Queue
-        ↓
-File Information
-        ↓
-User Consent
-   ┌────┴────┐
-  Upload    Reject
-    ↓
+File Selected
+      ↓
+VISTA File Identity Created
+      ↓
+Local Inventory Record
+      ↓
+Upload State
+      ↓
 Supabase Storage
-    ↓
-File Record
-    ↓
-Supabase PostgreSQL
-    ↓
-Memory Capture Complete
+      ↓
+Cloud File Metadata
+      ↓
+VISTA Inventory
+```
+
+### Important Architecture Decisions
+
+- Room stores lightweight local metadata/state and does not store actual file bytes.
+- Android source files remain at their original location/reference; VISTA uses a `sourceUri` / source reference rather than treating a device filesystem path as the permanent identity.
+- The VISTA `fileId` is the permanent logical identity of the item.
+- The same logical file identity will connect Room, PostgreSQL, and Supabase Storage.
+- Supabase Storage is the long-term managed-file storage location.
+- PostgreSQL is the cloud structured-metadata layer.
+- Room is the local persistence/cache/state layer.
+- The ability to store a file is independent of whether VISTA can currently understand its contents.
+- Automatic file detection and user-consent notifications are part of Module 3, not Module 2.
+- AI memory generation is part of Module 5; Module 2 only establishes the relationship foundation required for future memories.
+- File-to-memory architecture is many-to-many: one file can belong to multiple memories and one memory can contain multiple files.
+
+---
+
+## M2.1 Room Database Architecture ✅
+
+### Objective
+
+Establish Room as VISTA's local persistence layer for lightweight file inventory, state, and cache information.
+
+### Completed
+
+- Room Database integration
+- Room 2.8.5
+- `VistaDatabase`
+- `FileEntity`
+- `FileDao`
+- Room type converters for file states
+- Domain/database mapping
+- Database dependency injection
+- File repository foundation
+- Domain use-case foundation
+- Room unit tests
+- Room instrumented tests
+- Database migration infrastructure
+
+### Architecture
+
+```text
+Domain
+  ↓
+Repository
+  ↓
+Room DAO
+  ↓
+FileEntity
+  ↓
+SQLite
+```
+
+### Design Rule
+
+Room stores metadata and state only.
+
+It does not store original file bytes.
+
+### Git Checkpoint
+
+```text
+M2.1 Room Database Architecture
+```
+
+---
+
+## M2.2 VISTA File Identity & Inventory Model ✅
+
+### Objective
+
+Create the durable VISTA file identity and inventory model required for storage, upload tracking, processing, and future intelligence.
+
+### Completed
+
+#### File Identity
+
+- Permanent VISTA `fileId`
+- File ID generation
+- `VistaFile` domain model
+- `VistaFileFactory`
+- Source URI/reference support
+- Filename
+- MIME type
+- File size
+- Hash field foundation
+- Cloud storage path foundation
+- Import/created/updated timestamps
+
+#### File Classification
+
+Implemented `FileCategory` with logical categories for inventory organization.
+
+```text
+IMAGE
+VIDEO
+AUDIO
+DOCUMENT
+TEXT
+SPREADSHEET
+PRESENTATION
+ARCHIVE
+OTHER
+```
+
+The category system is extensible and does not imply that every category is already AI-understood.
+
+#### File State Model
+
+Upload state:
+
+```text
+PENDING
+UPLOADING
+UPLOADED
+FAILED
+```
+
+Processing state:
+
+```text
+PENDING
+PROCESSING
+COMPLETED
+FAILED
+```
+
+These states provide the foundation for later upload, processing, retry, and failure handling.
+
+#### Repository Layer
+
+Implemented:
+
+- `FileInventoryRepository`
+- `FileInventoryRepositoryImpl`
+- Hilt repository binding
+- Observe all files
+- Observe files by category
+- Observe files by upload status
+- Observe files by processing status
+- Get file by VISTA ID
+- Save file
+- Delete file
+
+#### Use Cases
+
+Implemented:
+
+```text
+ObserveFilesUseCase
+ObserveFilesByCategoryUseCase
+ObserveFilesByUploadStatusUseCase
+ObserveFilesByProcessingStatusUseCase
+GetFileUseCase
+SaveFileUseCase
+DeleteFileUseCase
+
+CreateVistaFileUseCase
+UpdateFileUploadStatusUseCase
+UpdateFileProcessingStatusUseCase
+
+FileCategoryResolver
+FileIdGenerator
+VistaFileFactory
+FileStateValidator
+```
+
+#### Database Evolution
+
+- Room schema upgraded from version 1 to version 2.
+- Migration `1 → 2` implemented.
+- Category/state fields integrated into Room persistence.
+- DAO queries added for category and state filtering.
+
+#### Testing
+
+- Room database tests updated for the new schema.
+- Instrumented database tests updated.
+- Repository tests added.
+- Domain/use-case tests added.
+- Build verification completed successfully.
+
+### M2.2 Architecture
+
+```text
+File Source / Future Picker
+        ↓
+CreateVistaFileUseCase
+        ↓
+VistaFileFactory
+        ↓
+VISTA File ID
+        ↓
+VistaFile
+        ↓
+FileInventoryRepository
+        ↓
+FileDao
+        ↓
+Room
+```
+
+### File Identity Relationship
+
+```text
+                 VISTA File ID
+                      │
+          ┌───────────┼───────────┐
+          ↓           ↓           ↓
+       Room       PostgreSQL   Supabase Storage
+      Metadata     Metadata      Object
+```
+
+### Future Memory Relationship
+
+The inventory model is prepared for a future many-to-many file/memory relationship:
+
+```text
+File
+ │
+ ├──── FileMemory ──── Memory
+ │
+ └──── FileMemory ──── Memory
+```
+
+A file may belong to multiple memories, while a memory may contain multiple files.
+
+Actual memory generation and semantic understanding remain future work.
+
+### Git Checkpoint
+
+```text
+feat(M2.2): implement VISTA file identity and inventory model
+```
+
+### Current M2.2 Working Tree Note
+
+The implementation has been completed and verified. The final M2.2 changes should be committed at the major-module checkpoint before beginning M2.3.
+
+---
+
+# <-- BOOKMARK [Current progress Mark] -->
+
+## M2.3 Manual File Capture ⏳ Next
+
+### Objective
+
+Allow the user to explicitly select a file using Android's Storage Access Framework and create a VISTA inventory item without yet performing automatic detection or cloud upload.
+
+### Planned Flow
+
+```text
+User
+ ↓
+System File Picker
+ ↓
+Selected URI
+ ↓
+Read File Metadata
+ ↓
+Create VISTA File ID
+ ↓
+Create VistaFile
+ ↓
+Save to Room
+ ↓
+Inventory Ready
 ```
 
 ### Planned Capabilities
 
-- System file picker integration
-- File selection
-- File metadata collection
-- Capture queue
-- User consent notification
-- Upload approval / rejection
+- Android Storage Access Framework integration
+- System file picker
+- Supported file-type selection
+- Persistable URI permission where available
+- Display name extraction
+- MIME type extraction
+- File-size extraction
+- File-category resolution
+- VISTA ID generation
+- Local inventory creation
+- Initial upload/processing states
+- Manual-capture failure handling
+
+### Important Boundary
+
+M2.3 will **not**:
+
+- Automatically monitor device files.
+- Ask for automatic-capture consent notifications.
+- Upload to Supabase Storage.
+
+Those capabilities belong to later milestones.
+
+---
+
+## M2.4 Supabase Storage Integration ⏳ Planned
+
+### Objective
+
+Upload approved/selected VISTA files to Supabase Storage while preserving the VISTA file identity.
+
+### Planned Storage Path
+
+```text
+users/
+└── {userId}/
+    └── files/
+        └── {fileId}/
+            └── original
+```
+
+### Planned Capabilities
+
 - Supabase Storage upload
-- Supabase PostgreSQL file record
-- Upload status tracking
-- Basic file inventory
-- Retry handling for failed uploads
-- Local queue/state where required
-- Original file preservation
+- Authenticated user ownership
+- File ID based storage path
+- Upload progress/state
+- Upload failure handling
+- Retry support
+- Cloud storage reference persistence
 
-### Important Architecture Decision
+---
 
-VISTA will use:
+## M2.5 Inventory UI ⏳ Planned
+
+### Objective
+
+Expose stored VISTA files through a usable inventory interface.
+
+### Planned Capabilities
+
+- File list
+- Category filtering
+- Upload-state visibility
+- Processing-state visibility
+- File details
+- Source/reference information
+- Empty-state UX
+- Loading/error states
+
+---
+
+## M2.6 Delete & State Management ⏳ Planned
+
+### Objective
+
+Implement safe lifecycle management for VISTA files.
+
+### Planned Capabilities
+
+- File deletion confirmation
+- Supabase Storage deletion
+- PostgreSQL metadata deletion
+- Local Room deletion
+- Failure handling
+- Upload retry
+- Processing-state transitions
+- Consistent lifecycle state
+
+### Delete Flow
 
 ```text
-Supabase Storage
-        +
-Supabase PostgreSQL
-        +
-Android Local Storage / Room
+User Deletes File
+      ↓
+Confirm
+      ↓
+Delete Cloud File
+      ↓
+Delete Cloud Metadata
+      ↓
+Delete Local Cache
+      ↓
+File Removed from Inventory
 ```
 
-Cloud storage is the primary long-term storage location for captured files.
+---
 
-The application must ask the user for consent before uploading a newly detected file.
+## M2.7 Relationship Foundation ⏳ Planned
 
-### Planned Module 2 Structure
+### Objective
+
+Prepare the file inventory for future VISTA memories without implementing AI memory generation yet.
+
+### Planned Architecture
 
 ```text
-feature/
-├── capture/
-├── files/
-└── upload/
-
-data/
-├── remote/
-│   ├── Supabase Storage
-│   └── Supabase PostgreSQL
-└── room/
-
-services/
-├── CaptureQueueService
-├── MediaMonitorService
-├── NotificationService
-└── CompressionService
+File
+  ↕
+FileMemory
+  ↕
+Memory
 ```
 
-### Module 2 Expected Flow
+### Design
 
-```text
-Android Device
-      ↓
-File Detection / Selection
-      ↓
-VISTA Capture System
-      ↓
-User Notification
-      ↓
-"Upload this file?"
-   ┌────┴────┐
-  Yes        No
-   ↓          ↓
-Upload      Ignore
-   ↓
-Supabase Storage
-   ↓
-PostgreSQL Metadata
-   ↓
-File Inventory
-```
+- Many-to-many file/memory relationship
+- Source-file traceability
+- Memory association metadata foundation
+- Compatible with future AI-generated memories
 
-### Module 2 Completion Target
+Actual memory creation, summarization, semantic understanding, and embeddings remain outside Module 2.
+
+---
+
+## Module 2 Completion Target
 
 At the end of Module 2, VISTA should be able to:
 
-1. Receive a file through supported Android capture/selection mechanisms.
-2. Display the detected file information.
-3. Ask the user whether the file should be uploaded.
-4. Upload approved files to Supabase Storage.
-5. Store the associated file record in Supabase PostgreSQL.
-6. Track upload state and failures.
-7. Display the captured file in the VISTA inventory.
+1. Select supported files through Android's system picker.
+2. Assign every managed file a permanent VISTA ID.
+3. Maintain lightweight local file inventory in Room.
+4. Upload managed files to Supabase Storage.
+5. Maintain structured cloud file metadata.
+6. Track upload and processing states.
+7. Display the file inventory.
+8. Delete files safely across local/cloud representations.
+9. Preserve source-file traceability.
+10. Provide the relationship foundation required for future memories.
 
-### Next Milestone
+### After Module 2
 
 ```text
-M2.1 — File Selection & Capture Foundation
+Module 2 — Storage & Inventory
+        ↓
+Module 3 — Automatic Capture
+        ↓
+Module 4 — Content & Metadata
+        ↓
+Module 5 — Intelligence
+        ↓
+Module 6 — Smart Retrieval
+        ↓
+Module 7 — Tracking & Notifications
+        ↓
+Module 8 — Advanced VISTA
 ```
 
-
-# B. Current Project Structure
+# A. Current Project Structure
 
 ```text
 app/src/main/java/com/vista/memoryos/
@@ -893,49 +1249,72 @@ app/src/main/java/com/vista/memoryos/
 ├── data
 │   ├── remote
 │   │   └── SupabaseClient.kt
-│   └── repository
-│       └── AuthRepositoryImpl.kt
+│   ├── repository
+│   │   ├── AuthRepositoryImpl.kt
+│   │   └── FileInventoryRepositoryImpl.kt
+│   └── room
+│       ├── converter
+│       │   └── FileStatusConverters.kt
+│       ├── dao
+│       │   └── FileDao.kt
+│       ├── entity
+│       │   └── FileEntity.kt
+│       ├── mapper
+│       │   └── FileMapper.kt
+│       └── VistaDatabase.kt
 │
 ├── di
+│   ├── DatabaseModule.kt
+│   ├── RepositoryModule.kt
+│   └── SupabaseModule.kt
 │
 ├── domain
 │   ├── model
 │   │   ├── AuthError.kt
-│   │   └── AuthResult.kt
-│   └── repository
-│       └── AuthRepository.kt
+│   │   ├── AuthResult.kt
+│   │   ├── FileCategory.kt
+│   │   └── VistaFile.kt
+│   │
+│   ├── repository
+│   │   ├── AuthRepository.kt
+│   │   └── FileInventoryRepository.kt
+│   │
+│   └── usecase
+│       ├── CreateVistaFileUseCase.kt
+│       ├── DeleteFileUseCase.kt
+│       ├── FileCategoryResolver.kt
+│       ├── FileIdGenerator.kt
+│       ├── FileStateValidator.kt
+│       ├── GetFileUseCase.kt
+│       ├── ObserveFilesByCategoryUseCase.kt
+│       ├── ObserveFilesByProcessingStatusUseCase.kt
+│       ├── ObserveFilesByUploadStatusUseCase.kt
+│       ├── ObserveFilesUseCase.kt
+│       ├── SaveFileUseCase.kt
+│       ├── UpdateFileProcessingStatusUseCase.kt
+│       ├── UpdateFileUploadStatusUseCase.kt
+│       └── VistaFileFactory.kt
 │
 ├── feature
 │   ├── auth
-│   │   ├── AuthViewModel.kt
-│   │   ├── LoginScreen.kt
-│   │   ├── LoginViewModel.kt
-│   │   └── VerificationSuccessScreen.kt
-│   │
 │   ├── onboarding
-│   │   ├── OnboardingScreen.kt
-│   │   └── OnboardingViewModel.kt
-│   │
 │   ├── home
 │   ├── search
 │   ├── timeline
 │   ├── profile
-│   │   └── ProfileScreen.kt
 │   └── splash
-│       └── SplashScreen.kt
 │
 ├── MainActivity.kt
 └── VistaApplication.kt
 ```
 
-
-# C. Latest Git Milestone
+# B. Latest Git Milestone
 
 ### Module 1 Completed
 
-Module 1 — Authentication & User Management is now complete.
+Module 1 — Authentication & User Management is complete.
 
-### Branch
+### Current Development Branch
 
 ```text
 feature/module-1-auth
@@ -963,16 +1342,55 @@ M1.7 Session Management + Logout
 Module 1 Complete ✅
 ```
 
-### Final Module 1 Commit
+### Module 2 Git Flow
 
 ```text
-feat(M1.7): complete session management and logout
+M2.1 Room Database Architecture
+ ↓
+M2.2 VISTA File Identity & Inventory Model 
+ ↓
+M2.3 Manual File Capture
+ ↓
+M2.4 Supabase Storage
+ ↓
+M2.5 Inventory UI
+ ↓
+M2.6 Delete & State Management
+ ↓
+M2.7 Relationship Foundation
+ ↓
+Module 2 Complete
 ```
 
-### Next Development Milestone
+### Completed Module 2 Checkpoints
 
 ```text
-M2.1 — File Selection & Capture Foundation
+M2.1 — Room Database Architecture ✅
+M2.2 — VISTA File Identity & Inventory Model ✅
 ```
 
-This roadmap matches the actual completed work from Module 0 and both Module 1 conversations, without including unimplemented or extra sections.
+### Current Next Development Milestone
+
+```text
+M2.3 — Manual File Capture
+```
+
+### M2.2 Commit
+
+```text
+feat(M2.2): implement VISTA file identity and inventory model
+```
+
+The commit is the required major-module checkpoint before starting M2.3.
+
+### Roadmap Update Rule
+
+From this point forward, every completed major milestone will update this roadmap in the same format:
+
+```text
+1. Project Progress
+2. Completed milestone details
+3. Current architecture/files
+4. Git milestone/checkpoint
+5. Next implementation milestone
+```
