@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.vista.memoryos.domain.model.FileUploadStatus
 import com.vista.memoryos.domain.model.VistaFile
 import kotlinx.coroutines.delay
 
@@ -55,8 +56,6 @@ fun HomeScreen(
                             Intent.FLAG_GRANT_READ_URI_PERMISSION
                         )
                     } catch (_: SecurityException) {
-                        // Some document providers do not support
-                        // persistable URI permissions.
                     }
                 }
 
@@ -68,12 +67,15 @@ fun HomeScreen(
         }
 
     LaunchedEffect(captureState) {
-        if (
-            captureState is ManualFileCaptureState.Success ||
-            captureState is ManualFileCaptureState.PartialSuccess
-        ) {
-            delay(3000)
-            manualFileCaptureViewModel.resetState()
+        when (captureState) {
+            is ManualFileCaptureState.Success,
+            is ManualFileCaptureState.PartialSuccess,
+            is ManualFileCaptureState.RetrySuccess -> {
+                delay(3000)
+                manualFileCaptureViewModel.resetState()
+            }
+
+            else -> Unit
         }
     }
 
@@ -108,7 +110,9 @@ fun HomeScreen(
             onClick = {
                 filePickerLauncher.launch(arrayOf("*/*"))
             },
-            enabled = captureState !is ManualFileCaptureState.Saving
+            enabled =
+                captureState !is ManualFileCaptureState.Saving &&
+                        captureState !is ManualFileCaptureState.Retrying
         ) {
             Text("Add File")
         }
@@ -144,6 +148,21 @@ fun HomeScreen(
                 }
             }
 
+            is ManualFileCaptureState.Retrying -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Retrying upload..."
+                    )
+                }
+            }
+
             is ManualFileCaptureState.Success -> {
                 Text(
                     text = "${state.count} file(s) added successfully",
@@ -151,20 +170,50 @@ fun HomeScreen(
                 )
             }
 
-            is ManualFileCaptureState.PartialSuccess -> {
+            is ManualFileCaptureState.RetrySuccess -> {
                 Text(
                     text =
-                        "${state.successful} of ${state.total} file(s) added. " +
-                                "${state.failed} failed.",
-                    color = MaterialTheme.colorScheme.error
+                        "${state.fileName} uploaded successfully",
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
+            is ManualFileCaptureState.PartialSuccess -> {
+                Column {
+                    Text(
+                        text =
+                            "${state.successful} of ${state.total} file(s) added. " +
+                                    "${state.failed} failed.",
+                        color = MaterialTheme.colorScheme.error
+                    )
+
+                    state.errorMessage?.let { message ->
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "Error: $message",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+
             is ManualFileCaptureState.Error -> {
-                Text(
-                    text = state.message,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Column {
+                    Text(
+                        text = "Upload failed",
+                        color = MaterialTheme.colorScheme.error
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = state.message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
 
@@ -196,7 +245,16 @@ fun HomeScreen(
                     items = files,
                     key = { file -> file.fileId }
                 ) { file ->
-                    VistaFileCard(file = file)
+
+                    VistaFileCard(
+                        file = file,
+                        onRetryUpload = {
+                            manualFileCaptureViewModel.retryUpload(file)
+                        },
+                        retryEnabled =
+                            captureState !is ManualFileCaptureState.Saving &&
+                                    captureState !is ManualFileCaptureState.Retrying
+                    )
                 }
             }
         }
@@ -204,7 +262,11 @@ fun HomeScreen(
 }
 
 @Composable
-private fun VistaFileCard(file: VistaFile) {
+private fun VistaFileCard(
+    file: VistaFile,
+    onRetryUpload: () -> Unit,
+    retryEnabled: Boolean
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -247,13 +309,28 @@ private fun VistaFileCard(file: VistaFile) {
                 text = "Processing: ${file.processingStatus.name}",
                 style = MaterialTheme.typography.bodySmall
             )
+
+            if (file.uploadStatus == FileUploadStatus.FAILED) {
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    onClick = onRetryUpload,
+                    enabled = retryEnabled
+                ) {
+                    Text("Retry Upload")
+                }
+            }
         }
     }
 }
 
 private fun formatFileSize(sizeBytes: Long): String {
     if (sizeBytes < 1024) return "$sizeBytes B"
-    if (sizeBytes < 1024 * 1024) return "${sizeBytes / 1024} KB"
+
+    if (sizeBytes < 1024 * 1024) {
+        return "${sizeBytes / 1024} KB"
+    }
+
     if (sizeBytes < 1024 * 1024 * 1024) {
         return "${sizeBytes / (1024 * 1024)} MB"
     }

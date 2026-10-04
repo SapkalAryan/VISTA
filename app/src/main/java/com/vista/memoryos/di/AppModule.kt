@@ -1,6 +1,7 @@
 package com.vista.memoryos.di
 
-import com.vista.memoryos.core.common.AppInfo
+import android.app.Application
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,10 +14,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAppInfo(): AppInfo {
-        return AppInfo(
-            appName = "VISTA",
-            version = "1.0.0"
-        )
+    fun provideApplicationContext(
+        application: Application
+    ): Context {
+        return application.applicationContext
     }
 }
