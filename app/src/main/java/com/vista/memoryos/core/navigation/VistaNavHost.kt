@@ -1,35 +1,38 @@
-
 package com.vista.memoryos.core.navigation
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.vista.memoryos.data.remote.SupabaseClientProvider
+import com.vista.memoryos.feature.auth.AuthViewModel
+import com.vista.memoryos.feature.auth.LoginScreen
+import com.vista.memoryos.feature.auth.VerificationSuccessScreen
 import com.vista.memoryos.feature.home.HomeScreen
 import com.vista.memoryos.feature.onboarding.OnboardingScreen
 import com.vista.memoryos.feature.profile.ProfileScreen
 import com.vista.memoryos.feature.search.SearchScreen
 import com.vista.memoryos.feature.splash.SplashScreen
 import com.vista.memoryos.feature.timeline.TimelineScreen
-import com.vista.memoryos.feature.auth.VerificationSuccessScreen
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import io.github.jan.supabase.auth.status.SessionStatus
-import com.vista.memoryos.feature.auth.AuthViewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.vista.memoryos.feature.auth.LoginScreen
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.vista.memoryos.data.remote.SupabaseClientProvider
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.status.SessionStatus
+import kotlinx.coroutines.launch
 
 @Composable
 fun VistaNavHost(
@@ -37,11 +40,19 @@ fun VistaNavHost(
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val sessionStatus by authViewModel.sessionStatus.collectAsState()
+
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
-    var authDeepLinkHandled by remember { mutableStateOf(false) }
 
-    LaunchedEffect(isAuthDeepLink, sessionStatus, authDeepLinkHandled) {
+    var authDeepLinkHandled by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(
+        isAuthDeepLink,
+        sessionStatus,
+        authDeepLinkHandled
+    ) {
         if (
             isAuthDeepLink &&
             !authDeepLinkHandled &&
@@ -58,7 +69,10 @@ fun VistaNavHost(
         }
     }
 
-    LaunchedEffect(sessionStatus, isAuthDeepLink) {
+    LaunchedEffect(
+        sessionStatus,
+        isAuthDeepLink
+    ) {
         if (
             !isAuthDeepLink &&
             sessionStatus is SessionStatus.Authenticated
@@ -75,7 +89,11 @@ fun VistaNavHost(
     Scaffold(
         bottomBar = {
             val currentRoute =
-                navController.currentBackStackEntryAsState().value?.destination?.route
+                navController
+                    .currentBackStackEntryAsState()
+                    .value
+                    ?.destination
+                    ?.route
 
             val showBottomBar = currentRoute in listOf(
                 Screen.Home.route,
@@ -98,8 +116,15 @@ fun VistaNavHost(
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(destination.icon, null) },
-                            label = { Text(destination.title) }
+                            icon = {
+                                Icon(
+                                    destination.icon,
+                                    contentDescription = null
+                                )
+                            },
+                            label = {
+                                Text(destination.title)
+                            }
                         )
                     }
                 }
@@ -112,7 +137,6 @@ fun VistaNavHost(
             startDestination = Screen.Splash.route,
             modifier = Modifier.padding(padding)
         ) {
-
 
             composable(Screen.Splash.route) {
                 SplashScreen(
@@ -169,14 +193,26 @@ fun VistaNavHost(
                 )
             }
 
-            composable(Screen.Home.route) { HomeScreen() }
-            composable(Screen.Search.route) { SearchScreen() }
-            composable(Screen.Timeline.route) { TimelineScreen() }
+            composable(Screen.Home.route) {
+                HomeScreen()
+            }
+
+            composable(Screen.Search.route) {
+                SearchScreen()
+            }
+
+            composable(Screen.Timeline.route) {
+                TimelineScreen()
+            }
+
             composable(Screen.Profile.route) {
                 ProfileScreen(
                     onLogout = {
                         scope.launch {
-                            SupabaseClientProvider.client.auth.signOut()
+                            SupabaseClientProvider
+                                .client
+                                .auth
+                                .signOut()
 
                             navController.navigate(Screen.Splash.route) {
                                 popUpTo(0) {
